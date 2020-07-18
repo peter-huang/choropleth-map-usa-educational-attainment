@@ -1,5 +1,6 @@
 {
   "name": "choropleth-map-usa-educational-attainment",
+  "homepage": "https://www.peterhuang.net/projects/choropleth-map-usa-educational-attainment/",
   "version": "0.1.0",
   "private": true,
   "dependencies": {
