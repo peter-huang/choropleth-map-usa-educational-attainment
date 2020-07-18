@@ -3,10 +3,28 @@ import logo from "./logo.svg";
 import "./frontend/css/main.css";
 import * as d3 from "d3";
 
+const COUNTIES_URL =
+  "https://cdn.freecodecamp.org/testable-projects-fcc/data/choropleth_map/counties.json";
+
 function App() {
   const [data, setData] = useState([]);
 
-  useEffect(() => {}, []);
+  useEffect(() => {
+    getData(COUNTIES_URL);
+  }, []);
+
+  const getData = (url) => {
+    const req = new XMLHttpRequest();
+    req.open("GET", url, true);
+    req.onreadystatechange = () => {
+      if (req.readyState === 4 && req.status === 200) {
+        const data = JSON.parse(req.responseText);
+
+        console.log(data.arcs);
+      }
+    };
+    req.send();
+  };
 
   return (
     <div class="container h-100">
@@ -38,8 +56,8 @@ function ChoroplethMap({ data }) {
   const drawChoroplethMap = (data) => {};
 
   return (
-    <div id="heatmap-container">
-      <div id="heatmap"></div>
+    <div id="choropleth-container">
+      <div id="choropleth"></div>
     </div>
   );
 }
