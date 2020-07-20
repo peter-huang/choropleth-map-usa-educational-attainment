@@ -49,4 +49,16 @@ body {
   padding: 1em;
   transform: translate(-50%, -50%);
 }
+
+#choropleth #title {
+  text-align: center;
+  font-size: 1.75em;
+  font-weight: bold;
+  padding-bottom: 1em;
+}
+
+#choropleth #title #description {
+  font-size: 0.75em !important;
+  font-weight: normal !important;
+}
 /*# sourceMappingURL=main.css.map */

@@ -2,7 +2,7 @@ import React, { useState, useEffect } from "react";
 import logo from "./logo.svg";
 import "./frontend/css/main.css";
 import * as d3 from "d3";
-import { json } from "d3";
+import * as topojson from "topojson";
 
 const URLS = [
   "https://cdn.freecodecamp.org/testable-projects-fcc/data/choropleth_map/counties.json",
@@ -64,7 +64,72 @@ function ChoroplethMap({ data }) {
   }, [data]);
 
   const drawChoroplethMap = (data) => {
-    console.log(data);
+    const counties = data[0];
+    const education = data[1];
+
+    console.log(counties);
+
+    const padding = {
+      top: 25,
+      right: 25,
+      bottom: 25,
+      left: 25,
+    };
+
+    const dim = {
+      width: 1000 + padding.left + padding.right,
+      height: 500 + padding.top + padding.bottom,
+    };
+
+    // TItles
+    d3.select("#choropleth")
+      .append("div")
+      .attr("id", "title")
+      .text("United States Educational Attainment");
+    d3.select("#title")
+      .append("div")
+      .attr("id", "description")
+      .text(
+        "Percentage of adults age 25 and older with a bachelor's degree or higher (2010-2014)"
+      );
+    const quantize = d3.scale
+      .quantize()
+      .domain([0, 0.15])
+      .range(
+        d3.range(9).map(function (i) {
+          return "q" + i + "-9";
+        })
+      );
+
+    const path = d3.geo.path().projection(null);
+
+    const svg = d3
+      .select("#choropleth")
+      .append("svg")
+      .attr("width", dim.width)
+      .attr("height", dim.height);
+
+    svg
+      .append("g")
+      .attr("class", "counties")
+      .selectAll("path")
+      .data(topojson.feature(data, data.objects.counties).features)
+      .enter()
+      .append("path")
+      .attr("class", function (d) {
+        return quantize(d.properties.rate);
+      })
+      .attr("d", path);
+
+    svg
+      .append("path")
+      .datum(
+        topojson.mesh(data, data.objects.counties, function (a, b) {
+          return (a.id / 1000) ^ (b.id / 1000);
+        })
+      )
+      .attr("class", "state-borders")
+      .attr("d", path);
   };
 
   return (
