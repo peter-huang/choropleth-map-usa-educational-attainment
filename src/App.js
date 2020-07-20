@@ -2,28 +2,38 @@ import React, { useState, useEffect } from "react";
 import logo from "./logo.svg";
 import "./frontend/css/main.css";
 import * as d3 from "d3";
+import { json } from "d3";
 
-const COUNTIES_URL =
-  "https://cdn.freecodecamp.org/testable-projects-fcc/data/choropleth_map/counties.json";
+const URLS = [
+  "https://cdn.freecodecamp.org/testable-projects-fcc/data/choropleth_map/counties.json",
+  "https://cdn.freecodecamp.org/testable-projects-fcc/data/choropleth_map/for_user_education.json",
+];
 
+/*
+const URLS = [
+  "https://www.peterhuang.net/projects/choropleth-map-usa-educational-attainment/files/counties.json",
+  "https://www.peterhuang.net/projects/choropleth-map-usa-educational-attainment/files/for_user_education.json",
+];
+*/
 function App() {
-  const [data, setData] = useState([]);
+  const [data, setData] = useState({});
 
   useEffect(() => {
-    getData(COUNTIES_URL);
+    getData(URLS);
   }, []);
 
-  const getData = (url) => {
-    const req = new XMLHttpRequest();
-    req.open("GET", url, true);
-    req.onreadystatechange = () => {
-      if (req.readyState === 4 && req.status === 200) {
-        const data = JSON.parse(req.responseText);
-
-        console.log(data.arcs);
-      }
-    };
-    req.send();
+  /*
+   * Fetches the json data asynchronously
+   *
+   * @param urls - array of links to the data source
+   */
+  const getData = (urls) => {
+    Promise.all(urls.map((url) => fetch(url)))
+      .then((responses) => Promise.all(responses.map((res) => res.json())))
+      .then((data) => {
+        setData(data);
+      })
+      .catch((error) => console.log("Error encountered: " + error));
   };
 
   return (
@@ -48,12 +58,14 @@ function App() {
 
 function ChoroplethMap({ data }) {
   useEffect(() => {
-    if (data["monthlyVariance"] != null) {
+    if (Object.keys(data).length > 0) {
       drawChoroplethMap(data);
     }
   }, [data]);
 
-  const drawChoroplethMap = (data) => {};
+  const drawChoroplethMap = (data) => {
+    console.log(data);
+  };
 
   return (
     <div id="choropleth-container">
