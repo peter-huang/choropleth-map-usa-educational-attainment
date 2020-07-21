@@ -61,4 +61,8 @@ body {
   font-size: 0.75em !important;
   font-weight: normal !important;
 }
+
+#choropleth svg path {
+  fill: red;
+}
 /*# sourceMappingURL=main.css.map */

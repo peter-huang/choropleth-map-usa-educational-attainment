@@ -64,10 +64,8 @@ function ChoroplethMap({ data }) {
   }, [data]);
 
   const drawChoroplethMap = (data) => {
-    const counties = data[0];
+    const topology = data[0];
     const education = data[1];
-
-    console.log(counties);
 
     const padding = {
       top: 25,
@@ -99,7 +97,21 @@ function ChoroplethMap({ data }) {
       .attr("width", dim.width)
       .attr("height", dim.height);
 
-    console.log(counties);
+    const geometries = topology.objects.counties;
+    const topojsonObject = topojson.feature(topology, geometries);
+    const topojsonDataSset = topojsonObject.features;
+    console.log(topojsonDataSset[0].geometry.coordinates);
+    const projection = d3.geoAlbers();
+
+    const path = d3.geoPath().projection(projection);
+    svg
+      .append("g")
+      .selectAll("path")
+      .data(topojsonDataSset[0].geometry.coordinates)
+      .enter()
+
+      .append("path")
+      .attr("d", (feature) => path(feature));
   };
 
   return (

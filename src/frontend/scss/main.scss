@@ -94,4 +94,10 @@ body {
     }
     padding-bottom: 1em;
   }
+
+  svg {
+    path {
+      fill: red;
+    }
+  }
 }
