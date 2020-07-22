@@ -94,24 +94,45 @@ function ChoroplethMap({ data }) {
     const svg = d3
       .select("#choropleth")
       .append("svg")
+      .attr("id", "map")
       .attr("width", dim.width)
       .attr("height", dim.height);
+    const { height, width } = document
+      .getElementById("map")
+      .getBoundingClientRect();
 
-    const geometries = topology.objects.counties;
-    const topojsonObject = topojson.feature(topology, geometries);
+    const counties = topology.objects.counties;
+    const topojsonObject = topojson.feature(topology, counties);
     const topojsonDataSset = topojsonObject.features;
-    console.log(topojsonDataSset[0].geometry.coordinates);
-    const projection = d3.geoAlbers();
+    const projection = d3
+      .geoAlbers()
+      .scale(100)
+      .translate([dim.width / 2, dim.height]);
+
+    console.log(counties);
 
     const path = d3.geoPath().projection(projection);
     svg
+
+      .selectAll("path")
+      .data(topojsonDataSset)
+      .enter()
+      .append("path")
+      .attr("d", path)
+      .style("fill", "red")
+      .style("stroke-width", "1")
+      .style("stroke", "black")
+      .on("mouseover", function (d) {
+        //console.log(d);
+      });
+    /*
+    svg
       .append("g")
       .selectAll("path")
-      .data(topojsonDataSset[0].geometry.coordinates)
+      .data(counties)
       .enter()
-
-      .append("path")
-      .attr("d", (feature) => path(feature));
+      .append("g")
+      .attr("d", (feature) => path(feature));*/
   };
 
   return (
