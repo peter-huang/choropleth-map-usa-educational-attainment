@@ -97,42 +97,40 @@ function ChoroplethMap({ data }) {
       .attr("id", "map")
       .attr("width", dim.width)
       .attr("height", dim.height);
-    const { height, width } = document
-      .getElementById("map")
-      .getBoundingClientRect();
 
+    const scale = topology.transform.scale;
+    const translate = topology.transform.translate;
+
+    const states = topology.objects.states;
     const counties = topology.objects.counties;
-    const topojsonObject = topojson.feature(topology, counties);
-    const topojsonDataSset = topojsonObject.features;
+    const nations = topology.objects.nation;
+    const bbox = topology.bbox;
+
+    // Data sets
+    const statesDataSet = topojson.feature(topology, states).features;
+    const countiesDataSet = topojson.feature(topology, counties).features;
+    const nationDataSet = topojson.feature(topology, nations).features;
+
+    //const projection = d3.geoAlbersUsa().translate(translate);
     const projection = d3
-      .geoAlbers()
-      .scale(100)
-      .translate([dim.width / 2, dim.height]);
+      .geoAlbersUsa()
+      .scale(1200)
+      .translate([dim.width / 2, dim.height / 2]);
+    const path = d3.geoPath();
 
-    console.log(counties);
+    const countiesGroup = svg.append("g").attr("id", "counties");
 
-    const path = d3.geoPath().projection(projection);
-    svg
+    console.log(topology);
+    console.log(translate);
+
+    countiesGroup
 
       .selectAll("path")
-      .data(topojsonDataSset)
+      .data(countiesDataSet)
       .enter()
       .append("path")
-      .attr("d", path)
-      .style("fill", "red")
-      .style("stroke-width", "1")
-      .style("stroke", "black")
-      .on("mouseover", function (d) {
-        //console.log(d);
-      });
-    /*
-    svg
-      .append("g")
-      .selectAll("path")
-      .data(counties)
-      .enter()
-      .append("g")
-      .attr("d", (feature) => path(feature));*/
+      .attr("fill", "#444")
+      .attr("d", path);
   };
 
   return (
