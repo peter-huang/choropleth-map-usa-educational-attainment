@@ -107,17 +107,16 @@ function ChoroplethMap({ data }) {
     const bbox = topology.bbox;
 
     // Data sets
-    const statesDataSet = topojson.feature(topology, states).features;
-    const countiesDataSet = topojson.feature(topology, counties).features;
-    const nationDataSet = topojson.feature(topology, nations).features;
+    const statesDataSet = topojson.feature(topology, states);
+    const countiesDataSet = topojson.feature(topology, counties);
+    const nationDataSet = topojson.feature(topology, nations);
 
     //const projection = d3.geoAlbersUsa().translate(translate);
     const projection = d3
-      .geoAlbersUsa()
-      .scale(1200)
-      .translate([dim.width / 2, dim.height / 2]);
-    const path = d3.geoPath();
+      .geoIdentity()
+      .fitSize([dim.width, dim.height], countiesDataSet);
 
+    const path = d3.geoPath().projection(projection);
     const countiesGroup = svg.append("g").attr("id", "counties");
 
     console.log(topology);
@@ -126,9 +125,10 @@ function ChoroplethMap({ data }) {
     countiesGroup
 
       .selectAll("path")
-      .data(countiesDataSet)
+      .data(countiesDataSet.features)
       .enter()
       .append("path")
+      .attr("class", "county")
       .attr("fill", "#444")
       .attr("d", path);
   };
