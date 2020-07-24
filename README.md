@@ -3,7 +3,7 @@
 A React-D3.js choropleth map graph application for showing American educational attainement completed for the freecodecamp data visualization curriculum.
 I can use any mix of HTML, JavaScript, CSS, Bootstrap, SASS, React, Redux, D3.js, and jQuery to complete this project.
 
-**Final Project:** [https://peterhuang.net/projects/heat-map-global-land-surface-temperature/](https://peterhuang.net/projects/heat-map-global-land-surface-temperature/)
+**Final Project:** [https://peterhuang.net/projects/choropleth-map-usa-educational-attainment/](https://peterhuang.net/projects/choropleth-map-usa-educational-attainment/)
 
 **User Story #1:** Shows the USA map and data from several JSON remote files.
 
