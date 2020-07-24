@@ -9,6 +9,8 @@ const URLS = [
   "https://cdn.freecodecamp.org/testable-projects-fcc/data/choropleth_map/for_user_education.json",
 ];
 
+const COLORS = ["#6fffe9", "#5bc0be", "#3a506b", "#1c2541", "#0b132b"];
+
 /*
 const URLS = [
   "https://www.peterhuang.net/projects/choropleth-map-usa-educational-attainment/files/counties.json",
@@ -79,6 +81,13 @@ function ChoroplethMap({ data }) {
       height: 500 + padding.top + padding.bottom,
     };
 
+    // Tooltip
+    const tooltip = d3
+      .select("#body")
+      .append("div")
+      .attr("id", "tooltip")
+      .attr("style", "position: absolute; opacity: 0;");
+
     // TItles
     d3.select("#choropleth")
       .append("div")
@@ -111,7 +120,6 @@ function ChoroplethMap({ data }) {
     const countiesDataSet = topojson.feature(topology, counties);
     const nationDataSet = topojson.feature(topology, nations);
 
-    //const projection = d3.geoAlbersUsa().translate(translate);
     const projection = d3
       .geoIdentity()
       .fitSize([dim.width, dim.height], countiesDataSet);
@@ -119,18 +127,59 @@ function ChoroplethMap({ data }) {
     const path = d3.geoPath().projection(projection);
     const countiesGroup = svg.append("g").attr("id", "counties");
 
-    console.log(topology);
-    console.log(translate);
+    console.log(countiesDataSet.features.length);
+    console.log(education.length);
 
     countiesGroup
-
       .selectAll("path")
       .data(countiesDataSet.features)
       .enter()
       .append("path")
       .attr("class", "county")
       .attr("fill", "#444")
-      .attr("d", path);
+      .attr("d", path)
+      .attr("id", (d) => d.id)
+      .attr("data-fips", (d) => {
+        const t = education.filter((e) => d.id === e.fips);
+        return t[0].fips;
+      })
+      .attr("data-education", (d) => {
+        const t = education.filter((e) => d.id === e.fips);
+        return t[0].bachelorsOrHigher;
+      })
+      .on("mouseover", (d, i) => {
+        //console.log("mousemove");
+
+        const eduObj = education.filter((e) => d.id === e.fips);
+
+        let content =
+          eduObj[0].area_name +
+          ", " +
+          eduObj[0].state +
+          ": " +
+          eduObj[0].bachelorsOrHigher +
+          "%";
+
+        tooltip.transition().duration(100).style("opacity", 0.9);
+        let pos = d3
+          .select(document.getElementsByClassName("county")[i])
+          .node()
+          .getBoundingClientRect();
+        let x = pos.x - window.pageXOffset + "px";
+        let y = pos.y - window.pageYOffset + "px";
+
+        tooltip
+          .html(content)
+          .style("left", x)
+          .style("top", y)
+          .style("opacity", 0.9)
+          .attr("data-education", eduObj[0].bachelorsOrHigher);
+      })
+      .on("mouseout", (d, i) => {
+        //console.log("mouseout");
+
+        tooltip.transition().duration(100).style("opacity", 0);
+      });
   };
 
   return (
