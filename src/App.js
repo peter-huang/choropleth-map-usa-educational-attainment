@@ -9,7 +9,41 @@ const URLS = [
   "https://cdn.freecodecamp.org/testable-projects-fcc/data/choropleth_map/for_user_education.json",
 ];
 
-const COLORS = ["#6fffe9", "#5bc0be", "#3a506b", "#1c2541", "#0b132b"];
+const COLORS = [
+  "#577590",
+  "#43aa8b",
+  "#90be6d",
+  "#f9c74f",
+  "#f8961e",
+  "#f3722c",
+  "#f94144",
+];
+
+/*
+ * Determines the color of the cell in the heatmap
+ *
+ * @param curD - current bachelor education attainment
+ * @param minP - minimum bachelor education attainment
+ * @param maxP - maximum bachelor education attainment
+ */
+const getCellColor = (curD, minP, maxP) => {
+  const increment = maxP / COLORS.length;
+  if (curD >= minP && curD < minP + increment) {
+    return COLORS[0];
+  } else if (curD >= minP + increment * 1 && curD < minP + increment * 2) {
+    return COLORS[1];
+  } else if (curD >= minP + increment * 2 && curD < minP + increment * 3) {
+    return COLORS[2];
+  } else if (curD >= minP + increment * 3 && curD < minP + increment * 4) {
+    return COLORS[3];
+  } else if (curD >= minP + increment * 4 && curD < minP + increment * 5) {
+    return COLORS[4];
+  } else if (curD >= minP + increment * 5 && curD < minP + increment * 6) {
+    return COLORS[5];
+  } else if (curD >= minP + increment * 6) {
+    return COLORS[6];
+  }
+};
 
 /*
 const URLS = [
@@ -70,15 +104,22 @@ function ChoroplethMap({ data }) {
     const education = data[1];
 
     const padding = {
-      top: 25,
-      right: 25,
-      bottom: 25,
-      left: 25,
+      top: 5,
+      right: 5,
+      bottom: 5,
+      left: 5,
     };
 
     const dim = {
       width: 1000 + padding.left + padding.right,
       height: 500 + padding.top + padding.bottom,
+    };
+
+    const axisFactor = {
+      top: 2,
+      right: 5,
+      bottom: 2,
+      left: 9,
     };
 
     // Tooltip
@@ -107,36 +148,41 @@ function ChoroplethMap({ data }) {
       .attr("width", dim.width)
       .attr("height", dim.height);
 
-    const scale = topology.transform.scale;
-    const translate = topology.transform.translate;
-
-    const states = topology.objects.states;
+    // Polygon datas
     const counties = topology.objects.counties;
-    const nations = topology.objects.nation;
-    const bbox = topology.bbox;
 
     // Data sets
-    const statesDataSet = topojson.feature(topology, states);
     const countiesDataSet = topojson.feature(topology, counties);
-    const nationDataSet = topojson.feature(topology, nations);
 
+    // Project resize (already projected data)
     const projection = d3
       .geoIdentity()
       .fitSize([dim.width, dim.height], countiesDataSet);
 
     const path = d3.geoPath().projection(projection);
+
+    const minBachelorPercent = d3.min(education, (d) => d.bachelorsOrHigher);
+    const maxBachelorPercent = d3.max(education, (d) => d.bachelorsOrHigher);
+
     const countiesGroup = svg.append("g").attr("id", "counties");
 
     console.log(countiesDataSet.features.length);
-    console.log(education.length);
 
+    // Drawing counties
     countiesGroup
       .selectAll("path")
       .data(countiesDataSet.features)
       .enter()
       .append("path")
       .attr("class", "county")
-      .attr("fill", "#444")
+      .attr("fill", (d) => {
+        const t = education.filter((e) => d.id === e.fips);
+        return getCellColor(
+          t[0].bachelorsOrHigher,
+          minBachelorPercent,
+          maxBachelorPercent
+        );
+      })
       .attr("d", path)
       .attr("id", (d) => d.id)
       .attr("data-fips", (d) => {
@@ -147,9 +193,7 @@ function ChoroplethMap({ data }) {
         const t = education.filter((e) => d.id === e.fips);
         return t[0].bachelorsOrHigher;
       })
-      .on("mouseover", (d, i) => {
-        //console.log("mousemove");
-
+      .on("mousemove", (d, i) => {
         const eduObj = education.filter((e) => d.id === e.fips);
 
         let content =
@@ -180,6 +224,56 @@ function ChoroplethMap({ data }) {
 
         tooltip.transition().duration(100).style("opacity", 0);
       });
+
+    // Legend Data
+    const tempLegend = () => {
+      const arr = [];
+      const t = (maxBachelorPercent - minBachelorPercent) / COLORS.length;
+
+      for (let i = 1; i <= COLORS.length; i++) {
+        if (i === 1) {
+          arr.push(minBachelorPercent);
+        } else {
+          arr.push(minBachelorPercent + (i - 1) * t);
+        }
+      }
+      return arr;
+    };
+
+    // Legend scale and axis setup
+    const educationScale = d3.scaleLinear();
+    educationScale.domain([minBachelorPercent, maxBachelorPercent]);
+    educationScale.range([0, padding.left * axisFactor.left * COLORS.length]);
+    const educationScaleAxis = d3
+      .axisBottom(educationScale)
+      .ticks(COLORS.length)
+      .tickValues(tempLegend())
+      .tickFormat((d) => d3.format("1.1f")(d) + "%");
+
+    // Add legend with scale and axis
+    const legend = svg
+      .append("g")
+      .attr("id", "legend")
+      .style("font-size", "0.75em")
+      .style("font-weight", "bold")
+      .attr(
+        "transform",
+        "translate(" + dim.width / 2 + "," + padding.top * axisFactor.top + ")"
+      )
+      .call(educationScaleAxis);
+
+    // Legend - scale the rects
+    for (let i = 0; i < COLORS.length; i++) {
+      legend
+        .append("rect")
+        .attr("width", padding.left * axisFactor.left)
+        .attr("height", padding.left * axisFactor.bottom)
+        .attr("x", padding.left * axisFactor.left * i)
+        .attr("y", -1 * padding.left * axisFactor.bottom)
+        .style("fill", COLORS[i])
+        .style("stroke-width", 1)
+        .style("stroke", "black");
+    }
   };
 
   return (
