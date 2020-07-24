@@ -166,9 +166,6 @@ function ChoroplethMap({ data }) {
 
     const countiesGroup = svg.append("g").attr("id", "counties");
 
-    console.log(countiesDataSet.features.length);
-
-    // Drawing counties
     countiesGroup
       .selectAll("path")
       .data(countiesDataSet.features)
@@ -185,6 +182,9 @@ function ChoroplethMap({ data }) {
       })
       .attr("d", path)
       .attr("id", (d) => d.id)
+      .attr("stroke-width", "30")
+
+      .attr("pointer-events", "visibleStroke")
       .attr("data-fips", (d) => {
         const t = education.filter((e) => d.id === e.fips);
         return t[0].fips;
@@ -193,7 +193,7 @@ function ChoroplethMap({ data }) {
         const t = education.filter((e) => d.id === e.fips);
         return t[0].bachelorsOrHigher;
       })
-      .on("mousemove", (d, i) => {
+      .on("mouseover", (d, i) => {
         const eduObj = education.filter((e) => d.id === e.fips);
 
         let content =
@@ -209,8 +209,8 @@ function ChoroplethMap({ data }) {
           .select(document.getElementsByClassName("county")[i])
           .node()
           .getBoundingClientRect();
-        let x = pos.x - window.pageXOffset + "px";
-        let y = pos.y - window.pageYOffset + "px";
+        let x = pos.x - window.pageXOffset + 10 + "px";
+        let y = pos.y - window.pageYOffset + 10 + "px";
 
         tooltip
           .html(content)
@@ -220,8 +220,6 @@ function ChoroplethMap({ data }) {
           .attr("data-education", eduObj[0].bachelorsOrHigher);
       })
       .on("mouseout", (d, i) => {
-        //console.log("mouseout");
-
         tooltip.transition().duration(100).style("opacity", 0);
       });
 
